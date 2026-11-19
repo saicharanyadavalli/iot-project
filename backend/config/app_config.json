@@ -1,0 +1,55 @@
+{
+  "normalization": {
+    "temp_min": 0.0,
+    "temp_max": 50.0,
+    "ph_min": 0.0,
+    "ph_max": 14.0,
+    "tds_min": 0.0,
+    "tds_max": 2000.0
+  },
+  "safety": {
+    "temp_min": 15.0,
+    "temp_max": 35.0,
+    "ph_min": 6.8,
+    "ph_max": 8.2,
+    "tds_min": 80.0,
+    "tds_max": 500.0
+  },
+  "serial": {
+    "port": "COM12",
+    "baud_rate": 115200,
+    "timeout": 1.0,
+    "reconnect_interval_sec": 3.0,
+    "mock_mode": false,
+    "parse_mode": "auto"
+  },
+  "model": {
+    "warmup_samples": 40,
+    "anomaly_quantile": 0.99,
+    "hst_n_trees": 15,
+    "hst_height": 8,
+    "hst_window_size": 250,
+    "individual_window_size": 30,
+    "individual_mad_multiplier": 3.5,
+    "adwin_delta": 0.002,
+    "adwin_clock": 16,
+    "adwin_grace_period": 15,
+    "shadow_model_stable_samples": 25,
+    "checkpoint_interval_samples": 20
+  },
+  "sync": {
+    "max_measurement_age_sec": 300.0,
+    "max_sync_diff_sec": 180.0
+  },
+  "wireless": {
+    "active_profile": "BALANCED",
+    "esp32_port": "COM13",
+    "nano_port": "COM12",
+    "baud_rate": 115200,
+    "rf_channel": 108,
+    "enable_dual_serial": true
+  },
+  "db_path": "data/iot_monitoring.db",
+  "checkpoint_path": "data/model_checkpoint.pkl",
+  "simulation_enabled": false
+}

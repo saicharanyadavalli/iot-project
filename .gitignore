@@ -1,0 +1,43 @@
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+node_modules/
+.next/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+*.pkl
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+!backend/data/.gitkeep
+
+# Environments & IDEs
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.vscode/
+.idea/
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Temporary & Playwright artifacts
+.playwright-mcp/
+*.log
+scratch/
