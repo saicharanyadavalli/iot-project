@@ -5,7 +5,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 export type WebSocketStatus = "CONNECTING" | "CONNECTED" | "DISCONNECTED" | "ERROR";
 
 export interface WebSocketMessage {
-  event: string;
+  event?: string;
+  type?: string;
   data: any;
   timestamp: string;
 }
@@ -19,6 +20,11 @@ export function useWebSocket(onMessage?: (msg: WebSocketMessage) => void) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const retryCountRef = useRef(0);
+  const onMessageRef = useRef(onMessage);
+
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
 
   const connect = useCallback(() => {
     if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
@@ -45,10 +51,16 @@ export function useWebSocket(onMessage?: (msg: WebSocketMessage) => void) {
 
       socket.onmessage = (event) => {
         try {
-          const parsed: WebSocketMessage = JSON.parse(event.data);
+          const raw = JSON.parse(event.data);
+          const parsed: WebSocketMessage = {
+            event: raw.event || raw.type || "",
+            type: raw.type || raw.event || "",
+            data: raw.data,
+            timestamp: raw.timestamp,
+          };
           setLastMessage(parsed);
-          if (onMessage) {
-            onMessage(parsed);
+          if (onMessageRef.current) {
+            onMessageRef.current(parsed);
           }
         } catch (e) {
           console.error("Failed to parse incoming WebSocket message:", e);
@@ -77,7 +89,7 @@ export function useWebSocket(onMessage?: (msg: WebSocketMessage) => void) {
       console.error("WebSocket connection failure:", err);
       setStatus("ERROR");
     }
-  }, [onMessage]);
+  }, []);
 
   useEffect(() => {
     connect();

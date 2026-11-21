@@ -5,7 +5,11 @@ import { Box, RefreshCw, Eye, EyeOff, Camera, HelpCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { Point3D } from "@/types/api";
 
-export const Multivariate3DTab: React.FC = () => {
+interface Multivariate3DTabProps {
+  refreshIntervalSeconds?: number;
+}
+
+export const Multivariate3DTab: React.FC<Multivariate3DTabProps> = ({ refreshIntervalSeconds = 5 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [points, setPoints] = useState<Point3D[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -28,7 +32,10 @@ export const Multivariate3DTab: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, [limit]);
+    const intervalMs = Math.max(2, Math.min(refreshIntervalSeconds, 60)) * 1000;
+    const timer = setInterval(loadData, intervalMs);
+    return () => clearInterval(timer);
+  }, [limit, refreshIntervalSeconds]);
 
   useEffect(() => {
     if (!containerRef.current || points.length === 0) return;

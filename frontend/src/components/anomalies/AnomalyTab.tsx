@@ -5,7 +5,11 @@ import { AlertTriangle, ShieldAlert, RefreshCw, Filter, Clock } from "lucide-rea
 import { api } from "@/lib/api";
 import { AnomalyEventRecord } from "@/types/api";
 
-export const AnomalyTab: React.FC = () => {
+interface AnomalyTabProps {
+  refreshIntervalSeconds?: number;
+}
+
+export const AnomalyTab: React.FC<AnomalyTabProps> = ({ refreshIntervalSeconds = 5 }) => {
   const [events, setEvents] = useState<AnomalyEventRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [severityFilter, setSeverityFilter] = useState<string>("ALL");
@@ -25,7 +29,10 @@ export const AnomalyTab: React.FC = () => {
 
   useEffect(() => {
     loadAnomalies();
-  }, []);
+    const intervalMs = Math.max(2, Math.min(refreshIntervalSeconds, 60)) * 1000;
+    const timer = setInterval(loadAnomalies, intervalMs);
+    return () => clearInterval(timer);
+  }, [refreshIntervalSeconds]);
 
   const filteredEvents =
     severityFilter === "ALL"

@@ -46,9 +46,30 @@ export default function DashboardPage() {
     loadInitialData();
   }, [loadInitialData]);
 
+  // Periodic auto-refresh synchronized with active hardware sampling interval
+  useEffect(() => {
+    // Interval in ms, minimum 2s, maximum 60s, default 5s
+    const activeSec = systemStatus?.sampling_interval?.active_interval_seconds ?? 5;
+    const intervalMs = Math.max(2, Math.min(activeSec, 60)) * 1000;
+
+    const timer = setInterval(() => {
+      // Background poll to ensure system status & readings remain synchronized
+      loadInitialData();
+    }, intervalMs);
+
+    return () => clearInterval(timer);
+  }, [systemStatus?.sampling_interval?.active_interval_seconds, loadInitialData]);
+
   // Handle incoming live WebSocket broadcasts
   const handleWebSocketMessage = useCallback((msg: WebSocketMessage) => {
-    switch (msg.event) {
+    const eventType = msg.event || msg.type;
+    switch (eventType) {
+      case "system_snapshot":
+        if (msg.data?.status) setSystemStatus(msg.data.status);
+        if (msg.data?.latest_readings) setLatestReadings(msg.data.latest_readings);
+        break;
+
+      case "sensor_reading":
       case "new_reading":
         setLatestReadings((prev) => {
           if (!prev) return prev;
@@ -57,8 +78,8 @@ export default function DashboardPage() {
           if (d.temperature !== undefined) {
             updated.temperature = {
               value: d.temperature,
-              timestamp: msg.timestamp,
-              data_source: d.data_source || "physical_serial",
+              timestamp: d.timestamp || msg.timestamp,
+              data_source: d.data_source || (d.data_sources?.temperature) || "physical_serial",
               is_stale: false,
               age_seconds: 0,
             };
@@ -66,8 +87,8 @@ export default function DashboardPage() {
           if (d.ph !== undefined) {
             updated.ph = {
               value: d.ph,
-              timestamp: msg.timestamp,
-              data_source: d.data_source || "manual_input",
+              timestamp: d.timestamp || msg.timestamp,
+              data_source: d.data_source || (d.data_sources?.ph) || "manual_input",
               is_stale: false,
               age_seconds: 0,
             };
@@ -75,8 +96,8 @@ export default function DashboardPage() {
           if (d.tds !== undefined) {
             updated.tds = {
               value: d.tds,
-              timestamp: msg.timestamp,
-              data_source: d.data_source || "manual_input",
+              timestamp: d.timestamp || msg.timestamp,
+              data_source: d.data_source || (d.data_sources?.tds) || "manual_input",
               is_stale: false,
               age_seconds: 0,
             };
@@ -165,11 +186,24 @@ export default function DashboardPage() {
               />
             )}
 
-            {activeTab === "live" && <LiveMonitoringTab thresholds={thresholds} />}
+            {activeTab === "live" && (
+              <LiveMonitoringTab
+                thresholds={thresholds}
+                refreshIntervalSeconds={systemStatus?.sampling_interval?.active_interval_seconds ?? 5}
+              />
+            )}
 
-            {activeTab === "multivariate" && <Multivariate3DTab />}
+            {activeTab === "multivariate" && (
+              <Multivariate3DTab
+                refreshIntervalSeconds={systemStatus?.sampling_interval?.active_interval_seconds ?? 5}
+              />
+            )}
 
-            {activeTab === "anomalies" && <AnomalyTab />}
+            {activeTab === "anomalies" && (
+              <AnomalyTab
+                refreshIntervalSeconds={systemStatus?.sampling_interval?.active_interval_seconds ?? 5}
+              />
+            )}
 
             {activeTab === "manual" && <ManualInputTab onSubmitted={loadInitialData} />}
 

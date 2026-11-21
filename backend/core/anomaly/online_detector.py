@@ -378,7 +378,7 @@ class AnomalyDetectionEngine:
             },
             "stage_2_rate_of_change": {
                 "name": "Rate of Change Monitoring",
-                "is_active": self.total_observations >= 2,
+                "is_active": True,
                 "readiness": "ACTIVE" if self.total_observations >= 2 else "COLLECTING",
                 "description": "Calculates temporal derivative (change/sec) from the second observation onward.",
             },

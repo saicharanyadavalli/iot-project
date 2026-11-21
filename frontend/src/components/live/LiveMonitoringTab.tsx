@@ -7,9 +7,10 @@ import { TimeSeriesPoint, ThresholdConfig } from "@/types/api";
 
 interface LiveMonitoringTabProps {
   thresholds: ThresholdConfig | null;
+  refreshIntervalSeconds?: number;
 }
 
-export const LiveMonitoringTab: React.FC<LiveMonitoringTabProps> = ({ thresholds }) => {
+export const LiveMonitoringTab: React.FC<LiveMonitoringTabProps> = ({ thresholds, refreshIntervalSeconds = 5 }) => {
   const [data, setData] = useState<TimeSeriesPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [windowMinutes, setWindowMinutes] = useState<number>(60);
@@ -28,9 +29,10 @@ export const LiveMonitoringTab: React.FC<LiveMonitoringTabProps> = ({ thresholds
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const intervalMs = Math.max(2, Math.min(refreshIntervalSeconds, 60)) * 1000;
+    const interval = setInterval(loadData, intervalMs);
     return () => clearInterval(interval);
-  }, [windowMinutes]);
+  }, [windowMinutes, refreshIntervalSeconds]);
 
   const recentTemps = data.filter((d) => d.temperature !== null).slice(-30);
   const recentPhs = data.filter((d) => d.ph !== null).slice(-30);
